@@ -10,6 +10,7 @@ debts - peoples
 specific - edit or remove transaction, choose month
 stats - statistics by 3 | 6 | 9 month or year(s)
 start - start or restart bot
+formats - print messages formats
 
 
 i|income amount desc?

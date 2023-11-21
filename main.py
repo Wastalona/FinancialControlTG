@@ -36,6 +36,8 @@ accounts_id = [
         sql.get_id(table="Accounts", name="Storage")
     ]
 
+accs = {"m": accounts_id[0], "o": accounts_id[1], "s": accounts_id[2]}
+
 
 def check_admin(func):
     async def wrapper(message):
@@ -149,7 +151,6 @@ async def check_expenses(message: types.Message):
     else:
         desc = ""
 
-    accs = {"m": accounts_id[0], "o": accounts_id[1], "s": accounts_id[2]}
     transact = Transaction(data[0], desc, category_id, payment_id, accs[data[1]])
 
     try:
@@ -196,19 +197,49 @@ async def check_income(message: types.Message) -> None:
         commands_stack.clear()
 
 # Debt
-# @dp.message(F.text.regexp(r"^(\d+(?:.\d+)?) ?(.+)?").as_("data"))
+# @dp.message(F.text.regexp(r"^(\w+)-(\d+(?:.\d+)?)-(\d+(?:.\d+)?)-(.+)"))
 # @check_admin
-# async def check_categories(message: types.Message, data: list):
-#     print(f"[ DEBUG ] {data}")
-#     await message.answer("debt was writen")
+# async def check_categories(message: types.Message):
+#     record: list = message.text.split("-")
+#     data: list = [*record, *commands_stack]
 #
+#     commission: int = round(float(data[1]) - float(data[2]), 2)
+#     payment: str = data[-2].title()
+#     category_id: int = sql.get_id(table="Categories", name="Debt", tr_type="expenses")
+#     category_id_com: int = sql.get_id(table="Categories", name="Commission", tr_type="expenses")
+#     payment_id: int = sql.get_id(table="Storages", name=payment)
 #
-# # Transfer
-# @dp.message(F.text.regexp(r"^(\d+(?:.\d+)?) ?(.+)?").as_("data"))
-# @check_admin
-# async def check_categories(message: types.Message, data: list):
-#     print(f"[ DEBUG ] {data}")
-#     await message.answer("transfer was writen")
+#     transact = Transaction(data[2], data[0], category_id, payment_id, accounts_id[1])
+#     transact_com = Transaction(commission, data[0], category_id_com, payment_id, accounts_id[1])
+#
+#     try:
+#         sql.add_transaction(transact)
+#         sql.add_transaction(transact_com)
+#         sql.update_balance(transact.account_id, transact.amount, transact.transaction_date, False)
+#         sql.update_balance(transact_com.account_id, transact_com.amount, transact_com.transaction_date, False)
+#         await message.answer("[ D ] Transaction added", reply_markup=markup.menu)
+#     except sqlite3.OperationalError as er:
+#         await message.answer(f"{er}")
+#     finally:
+#         commands_stack.clear()
+
+# Transfer
+@dp.message(F.text.regexp(r"^(m|s|o)-(m|s|o)-(\d+(?:.\d+)?)"))
+@check_admin
+async def check_categories(message: types.Message):
+    record = message.text.lower().split("-")
+
+    transfer = Transfer(accs[record[0]], accs[record[1]], float(record[2]))
+
+    try:
+        sql.add_transfer(transfer)
+        sql.update_balance(transfer.from_account, transfer.amount, transfer.transfer_date, False)
+        sql.update_balance(transfer.to_account, transfer.amount, transfer.transfer_date, True)
+        await message.answer("[ ~ ] Transfer added", reply_markup=markup.menu)
+    except sqlite3.OperationalError as er:
+        await message.answer(f"{er}")
+    finally:
+        commands_stack.clear()
 
 
 @dp.message()
@@ -245,7 +276,7 @@ async def check_functions(message: types.Message):
         commands_stack.append(msg[2:])
         await message.reply("Choose expenses category", reply_markup=markup.expenses_categories())
     elif msg in ("+ debt", "- debt"):
-        # add_debt(msg.split(" ")[0])
+        commands_stack.append(msg[0])
         await message.reply("Enter debt expression")
     elif msg == "transfer":
         # add_transfer(msg.split(" ")[0])

@@ -19,7 +19,7 @@ class Transaction:
             self.category_id,
             self.payment_id,
             self.account_id,
-            self.transaction_date
+            self.transaction_date,
         )
 
 
@@ -29,6 +29,14 @@ class Transfer:
     to_account: int
     amount: float
     transfer_date: datetime = datetime.utcnow()
+
+    def to_tuple(self):
+        return (
+            self.from_account,
+            self.to_account,
+            self.amount,
+            self.transfer_date,
+        )
 
 
 class SqliteController:
@@ -70,12 +78,18 @@ class SqliteController:
             return ["None", "None"]
 
 
+    def add_transfer(self, value: Transfer):
+        query = "INSERT INTO `Transfers` (from_account, to_account, amount, transfer_date) VALUES(?, ?, ?, ?)"
+        self.cursor.execute(query, value.to_tuple())
+        self.connection.commit()
+
     def add_transaction(self, value: Transaction):
         query = "INSERT INTO `Transactions` (amount, description, category_id, payment_id, account_id, transaction_date) VALUES(?, ?, ?, ?, ?, ?)"
         self.cursor.execute(query, value.to_tuple())
         self.connection.commit()
 
     def update_balance(self, acc_id: int, value: float, date: datetime, action: bool):
+        # action 0 equal expenses, 1 - income
         self.cursor.execute(f"SELECT amount FROM Accounts WHERE id={acc_id}")
         old_amount = self.cursor.fetchone()[0]
 
