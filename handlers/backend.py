@@ -19,6 +19,8 @@ class Backend:
             "s": self.sql.get_id(table="Accounts", name="Storage")
         }
 
+        self.commands_stack = []
+
     @staticmethod
     def tuples_inlist(tuples: list, values_type: str = "float") -> list:
         """A list with tuples is converted to a list with the desired type"""

@@ -3,8 +3,8 @@ from aiogram.filters import Command
 from datetime import datetime
 
 from handlers import markup
-from main import check_admin, connector, logic
-from storages import *
+from handlers.settings import check_admin, logic, connector
+from handlers.storages import InfoCollection
 
 cmd_router = Router()
 
@@ -77,16 +77,16 @@ async def new_transaction(message: types.Message) -> None:
 @cmd_router.message(Command("info"))
 @check_admin
 async def info(message: types.Message) -> None:
-    info = logic.collect_info()
+    info_coll = logic.collect_info()
 
     information = f"{datetime.now().ctime()}\n\n=== Balance ===\n\
-(50%) As needed: {info.main}р\n\
-(20%) Optional: {info.opt}\n\
-(30%) Storage: {info.stg}р\n\
-Debts: {info.debt}р\n\
-=> Total: {sum([info.main, info.opt, info.stg, info.debt])}р\n\n=== {datetime.now().strftime('%B')} report ===\n\
-🔺 Income: {info.month_income}р\n🔻Expenses: {info.month_expenses}р\n\
-Top expenses: {info.top_name} with {info.top_expenses}р\n=>Total {info.d}р 🔺\n\n\
-=== Formats ===\ncash: {info.cash}р\ncard: {info.card}р"
+(50%) As needed: {info_coll.main}р\n\
+(20%) Optional: {info_coll.opt}\n\
+(30%) Storage: {info_coll.stg}р\n\
+Debts: {info_coll.debt}р\n\
+=> Total: {sum([info_coll.main, info_coll.opt, info_coll.stg, info_coll.debt])}р\n\n=== {datetime.now().strftime('%B')} report ===\n\
+🔺 Income: {info_coll.month_income}р\n🔻Expenses: {info_coll.month_expenses}р\n\
+Top expenses: {info_coll.top_name} with {info_coll.top_expenses}р\n=>Total {info_coll.d}р 🔺\n\n\
+=== Formats ===\ncash: {info_coll.cash}р\ncard: {info_coll.card}р"
 
     await message.answer(information)

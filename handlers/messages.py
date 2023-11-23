@@ -2,9 +2,9 @@ import sqlite3
 from aiogram import Router, types, F
 
 from handlers import markup
-from main import check_admin, logic, connector
-from storages import *
-from commands import (
+from handlers.settings import check_admin, logic, connector
+from handlers.storages import *
+from handlers.commands import (
     command_start_handler, statistics, asneeded, optional,
     storage, transaction, transfers, debts, specific_functions,
     new_transaction, info)
