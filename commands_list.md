@@ -8,10 +8,11 @@ transaction - info about transactions on current Month
 transfers - info about transfers on current Month
 debts - peoples
 specific - edit or remove transaction, choose month
-stats - statistics by 3 | 6 | 9 month or year(s)
-start - start or restart bot
 formats - print messages formats
+start - start or restart bot
 
+
+stats - statistics by 3 | 6 | 9 month or year(s)
 
 i|income amount desc?
 e|expenses amount category account(m, o, s | main, optional, storage) desc?

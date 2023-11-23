@@ -1,44 +1,20 @@
 import sqlite3
 from datetime import datetime
-from dataclasses import dataclass
+
+from handlers.storages import *
 
 
-@dataclass
-class Transaction:
-    amount: float
-    description: str
-    category_id: int
-    payment_id: int
-    account_id: int
-    transaction_date: datetime = datetime.utcnow()
+def singleton(cls):
+    instances = {}
 
-    def to_tuple(self):
-        return (
-            self.amount,
-            self.description,
-            self.category_id,
-            self.payment_id,
-            self.account_id,
-            self.transaction_date,
-        )
+    def get_instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return get_instance
 
 
-@dataclass
-class Transfer:
-    from_account: int
-    to_account: int
-    amount: float
-    transfer_date: datetime = datetime.utcnow()
-
-    def to_tuple(self):
-        return (
-            self.from_account,
-            self.to_account,
-            self.amount,
-            self.transfer_date,
-        )
-
-
+@singleton
 class SqliteController:
     def __init__(self, *, path="budget.db"):
         try:
@@ -77,6 +53,14 @@ class SqliteController:
         except sqlite3.OperationalError:
             return ["None", "None"]
 
+    def get_value(self, table: str, column: str, condition: str = "", data: list = []) -> list:
+        query = f"SELECT {column} FROM {table} {condition}"
+        if len(data) > 0:
+            self.cursor.execute(query, data)
+        else:
+            self.cursor.execute(query)
+
+        return self.cursor.fetchall()
 
     def add_transfer(self, value: Transfer):
         query = "INSERT INTO `Transfers` (from_account, to_account, amount, transfer_date) VALUES(?, ?, ?, ?)"
@@ -105,5 +89,4 @@ class SqliteController:
     def __del__(self):
         self.connection.close()
 
-
-__all__ = ["Transaction", "SqliteController", "Transfer"]
+__all__ = ["SqliteController"]
