@@ -68,25 +68,41 @@ class SqliteController:
         self.connection.commit()
 
     def add_transaction(self, value: Transaction):
-        query = "INSERT INTO `Transactions` (amount, description, category_id, payment_id, account_id, transaction_date) VALUES(?, ?, ?, ?, ?, ?)"
+        query = "INSERT INTO `Transactions` (amount, description, category_id, payment_id, account_id, " \
+                "transaction_date) VALUES(?, ?, ?, ?, ?, ?)"
         self.cursor.execute(query, value.to_tuple())
         self.connection.commit()
 
-    def update_balance(self, acc_id: int, value: float, date: datetime, action: bool):
+    def update_balance(self, acc_id: int, value: float, date: datetime, action: bool, stg_id: int):
         # action 0 equal expenses, 1 - income
-        self.cursor.execute(f"SELECT amount FROM Accounts WHERE id={acc_id}")
-        old_amount = self.cursor.fetchone()[0]
+        # storage 1 equal card, 2 equal cash
+        self.cursor.execute(f"SELECT amount FROM Accounts WHERE id=?", (acc_id,))
+        acc_amount = self.cursor.fetchone()[0]
+
+        self.cursor.execute(f"SELECT amount FROM Storages WHERE id=?", (stg_id,))
+        stg_amount = self.cursor.fetchone()[0]
 
         if action:
-            value = round(old_amount+value, 2)
+            acc_amount += value
+            stg_amount += value
         else:
-            value = round(old_amount-value, 2)
+            acc_amount -= value
+            stg_amount -= value
 
-        query = f"UPDATE Accounts SET amount=?, lastUpdate=? WHERE id={acc_id}"
-        self.cursor.execute(query, (value, date))
+        query = f"UPDATE Accounts SET amount=?, lastUpdate=? WHERE id=?"
+        self.cursor.execute(query, (acc_amount, date, acc_id))
+
+        query = f"UPDATE Storages SET amount=?, dateOfUpdate=? WHERE id=?"
+        self.cursor.execute(query, (stg_amount, date, stg_id))
+
         self.connection.commit()
+
+    def data_availability(self):
+        self.cursor.execute("SELECT COUNT(*) FROM Transactions")
+        return self.cursor.fetchone()[0]
 
     def __del__(self):
         self.connection.close()
+
 
 __all__ = ["SqliteController"]

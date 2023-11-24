@@ -1,7 +1,7 @@
 from handlers.db_sqlite import *
 from handlers.backend import Backend
 
-connector = SqliteController(path="test.db")
+connector = SqliteController(path="instance/test.db")
 logic = Backend(connector)
 
 

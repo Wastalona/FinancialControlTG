@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from datetime import datetime
 
 from handlers import markup
-from handlers.settings import check_admin, logic, connector
+from handlers.node import check_admin, logic, connector
 from handlers.storages import InfoCollection
 
 cmd_router = Router()
@@ -52,7 +52,7 @@ async def transaction(message: types.Message) -> None:
 @cmd_router.message(Command(commands=["transfers", "tf"]))
 @check_admin
 async def transfers(message: types.Message) -> None:
-    await message.answer("transfers\nformat:from to amount")
+    await message.answer("transfers\nformat:from-to-amount-from_stg")
 
 
 @cmd_router.message(Command(commands=["debts", "list"]))
@@ -87,6 +87,6 @@ Debts: {info_coll.debt}р\n\
 => Total: {sum([info_coll.main, info_coll.opt, info_coll.stg, info_coll.debt])}р\n\n=== {datetime.now().strftime('%B')} report ===\n\
 🔺 Income: {info_coll.month_income}р\n🔻Expenses: {info_coll.month_expenses}р\n\
 Top expenses: {info_coll.top_name} with {info_coll.top_expenses}р\n=>Total {info_coll.d}р 🔺\n\n\
-=== Formats ===\ncash: {info_coll.cash}р\ncard: {info_coll.card}р"
+=== Formats ===\ncash: {round(info_coll.cash, 2)}р\ncard: {round(info_coll.card, 2)}р"
 
     await message.answer(information)
