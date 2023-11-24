@@ -50,6 +50,10 @@ class Backend:
 
             if month_expenses != None and month_income != None:
                 d = month_income - month_expenses
+                top_expenses, category_id = self.sql.get_value(
+                    "Transactions", "MAX(amount), category_id", f"WHERE category_id NOT IN ({category_ex})")[0]
+
+                top_name = self.sql.get_value("Categories", "name", "WHERE id=?", [category_id])[0][0]
             elif month_expenses != None:
                 d = -month_expenses
                 top_expenses, category_id = self.sql.get_value(
@@ -66,7 +70,7 @@ class Backend:
     def process_transaction(self, message: str, tr_type: str) -> str:
         record = message.split("-")
         data = [*record, *self.commands_stack]
-        amount = round(float(data[0]), 2)
+        data[0] = round(float(data[0]), 2)
 
         payment = data[-2].title()
         category_id = self.sql.get_id(table="Categories", name=data[-1], tr_type=tr_type)
@@ -87,7 +91,7 @@ class Backend:
             for i, acc in enumerate(accounts):
                 transact_list.append(Transaction(amounts[i], desc, category_id, payment_id, self.accounts_id[acc]))
         else:
-            transact = Transaction(amount, desc, category_id, payment_id, self.accounts_id[data[1]])
+            transact = Transaction(data[0], desc, category_id, payment_id, self.accounts_id[data[1]])
             transact_list = [transact]
 
         try:
@@ -99,6 +103,29 @@ class Backend:
             return f"Error: {er}"
         finally:
             self.commands_stack.clear()
+
+    def get_transaction(self, *, out_format: str = "list"):
+        # str, list
+        tr = self.sql.get_value("Transactions", "*", "LIMIT 7")
+        out = []
+        for transact in tr:
+            msg = ""
+            id, amount, desc, cat, pay, acc, date = transact
+            cat = self.sql.get_value("Categories", "name", "WHERE id=?", [cat])[0][0]
+            pay = self.sql.get_value("Storages", "storageName", "WHERE id=?", [pay])[0][0]
+            acc = self.sql.get_value("Accounts", "accountName", "WHERE id=?", [acc])[0][0]
+
+            msg = f"| {acc[0]} | {cat} {amount} {pay} {date[:10]}\n"
+            if len(desc) > 0:
+                msg += f"| {acc[0]}+ {desc}\n"
+
+            out.append(msg)
+            msg = ""
+
+        if out_format == "str":
+            return "".join(out)
+
+        return out
 
     def push_in_db(self, message: str, _type: str):
         ...

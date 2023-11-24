@@ -26,27 +26,42 @@ async def statistics(message: types.Message) -> None:
 @check_admin
 async def asneeded(message: types.Message) -> None:
     amount, date = connector.get_info("Main")
-    await message.answer(f"As Needed\n=== {date} ===\namount: {amount}")
+    await message.answer(f"As Needed\n=== {date[:19]} ===\namount: {amount}р")
 
 
 @cmd_router.message(Command(commands=["optional", "percent20", "pc20", "withme"]))
 @check_admin
 async def optional(message: types.Message) -> None:
     amount, date = connector.get_info("Optional")
-    await message.answer(f"Optional\n=== {date} ===\namount: {amount}")
+    await message.answer(f"Optional\n=== {date[:19]} ===\namount: {amount}р")
 
 
 @cmd_router.message(Command(commands=["storage", "percent30", "pc20", "stg"]))
 @check_admin
 async def storage(message: types.Message) -> None:
     amount, date = connector.get_info("Storage")
-    await message.answer(f"Storage\n=== {date} ===\namount: {amount}")
+    await message.answer(f"Storage\n=== {date[:19]} ===\namount: {amount}р")
+
+
+@cmd_router.message(Command("cash"))
+@check_admin
+async def cash_balance(message: types.Message) -> None:
+    amount, date = connector.get_value("Storages", "amount, dateOfUpdate", "WHERE id=?", [1])[0]
+    await message.answer(f"Cash\n=== {date[:19]} ===\namount: {amount}р")
+
+
+@cmd_router.message(Command("card"))
+@check_admin
+async def card_balance(message: types.Message) -> None:
+    amount, date = connector.get_value("Storages", "amount, dateOfUpdate", "WHERE id=?", [2])[0]
+    await message.answer(f"Card\n=== {date[:19]} ===\namount: {amount}р")
 
 
 @cmd_router.message(Command(commands=["transaction", "ts"]))
 @check_admin
-async def transaction(message: types.Message) -> None:
-    await message.answer("transaction\nformat: type payment category amount description")
+async def transactions_out(message: types.Message) -> None:
+    out = f"{'='*7} Transactions {'='*7}\n" + logic.get_transaction(out_format="str")
+    await message.answer(out)
 
 
 @cmd_router.message(Command(commands=["transfers", "tf"]))

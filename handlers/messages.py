@@ -6,7 +6,7 @@ from handlers.node import check_admin, logic, connector
 from handlers.storages import *
 from handlers.commands import (
     command_start_handler, statistics, asneeded, optional,
-    storage, transaction, transfers, debts, specific_functions,
+    storage, transactions_out, transfers, debts, specific_functions,
     new_transaction, info)
 
 messages_router = Router()
@@ -87,7 +87,7 @@ async def check_functions(message: types.Message):
         "as needed": asneeded,
         "optional": optional,
         "storage": storage,
-        "transaction": transaction,
+        "transaction": transactions_out,
         "transfers": transfers,
         "debts": debts,
         "info": info,
